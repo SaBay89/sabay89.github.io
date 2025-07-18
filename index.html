@@ -1,98 +1,425 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meine TSW Erfahrung</title>
+    <title>Interaktive Analyse: Topical Steroid Withdrawal (TSW)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A thematic single-page application with a sticky navigation to guide users through key aspects of TSW. The structure prioritizes user journey over report-like chapters: starting with validation ('Was ist TSW?'), moving to symptom identification ('Symptome'), visualizing the healing journey ('Der Prozess'), providing scientific depth ('Wissenschaft'), and offering practical help ('Hilfe'). This non-linear, explorable structure is chosen to empower users to find the information most relevant to their current state, reducing overwhelm and fostering understanding of a complex medical condition. -->
+    <!-- Visualization & Content Choices: 1. Cortisone Cycle: Goal=Organize. Method=Interactive HTML diagram. Interaction=Click to reveal stage info. Justification=Simplifies a complex feedback loop. 2. Symptom Comparison: Goal=Compare. Method=Interactive HTML columns. Interaction=Button click to show parallel descriptions. Justification=Clearly differentiates TSW from eczema. 3. Healing Timeline: Goal=Change over time. Method=Chart.js Line Chart. Interaction=Hover over points to get phase descriptions. Justification=Visualizes the long, non-linear healing process, managing patient expectations. 4. Pathophysiology: Goal=Inform. Method=HTML Accordion. Interaction=Click to expand. Justification=Breaks down complex scientific concepts into digestible parts. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f8f7f4;
+            color: #2c3e50;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-button.active, .nav-button:hover {
+            color: #0c7a7e;
+            border-bottom-color: #0c7a7e;
         }
         .content-section {
-            @apply bg-white shadow-lg rounded-lg p-6 md:p-8 mb-6;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
         }
-        .main-heading {
-            @apply text-3xl md:text-4xl font-bold text-center mb-8 text-slate-700;
+        .content-section.active {
+            display: block;
         }
-        .sub-heading {
-            @apply text-2xl font-semibold mb-4 text-slate-600;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .paragraph {
-            @apply text-slate-700 leading-relaxed mb-4;
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .cycle-step {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .cycle-step.active {
+            border-color: #0c7a7e;
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .symptom-btn.active {
+            background-color: #0c7a7e;
+            color: white;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
+<body class="antialiased">
 
-    <header class="bg-teal-600 text-white p-6 shadow-md">
-        <div class="container mx-auto">
-            <h1 class="text-3xl font-bold text-center">Meine Reise durch Topical Steroid Withdrawal (TSW)</h1>
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#0c7a7e] mb-2">Topical Steroid Withdrawal</h1>
+            <p class="text-lg text-slate-600">Eine interaktive Analyse zum besseren Verständnis</p>
+        </header>
+        
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-10">
+             <p class="text-slate-700 leading-relaxed">
+                Willkommen. Diese Seite dient der Aufklärung über den Topischen Steroidentzug (TSW), eine oft missverstandene und belastende Reaktion des Körpers auf das Absetzen von Kortisoncremes. Ihre persönliche Erfahrung, von einer kleinen Stelle zu einer sich verschlimmernden Abhängigkeit, ist ein klassisches Beispiel für den Weg, den viele Betroffene gehen. Diese Analyse soll Ihnen helfen, die Vorgänge in Ihrem Körper zu verstehen und zu erkennen, dass Sie mit diesen Erfahrungen nicht allein sind.
+            </p>
         </div>
-    </header>
 
-    <nav class="bg-teal-700 text-white py-3 shadow-md">
-        <div class="container mx-auto flex justify-center">
-            <!-- Spätere Links hier einfügen, z.B.
-            <a href="#abschnitt1" class="px-4 hover:text-teal-200">Abschnitt 1</a>
-            <a href="#abschnitt2" class="px-4 hover:text-teal-200">Abschnitt 2</a>
-            -->
-            <p class="text-sm">Navigation (bald mehr hier)</p>
-        </div>
-    </nav>
+        <nav class="sticky top-0 bg-white/80 backdrop-blur-sm z-10 shadow-md rounded-xl mb-12">
+            <div class="flex justify-center items-center flex-wrap p-4 space-x-2 md:space-x-6">
+                <button class="nav-button active font-medium text-slate-700 py-2 px-3" data-target="was-ist-tsw">Was ist TSW?</button>
+                <button class="nav-button font-medium text-slate-700 py-2 px-3" data-target="symptome">Symptome</button>
+                <button class="nav-button font-medium text-slate-700 py-2 px-3" data-target="prozess">Der Prozess</button>
+                <button class="nav-button font-medium text-slate-700 py-2 px-3" data-target="wissenschaft">Wissenschaft</button>
+                <button class="nav-button font-medium text-slate-700 py-2 px-3" data-target="hilfe">Hilfe & Management</button>
+            </div>
+        </nav>
 
-    <main class="container mx-auto p-4 md:p-6">
-        <h2 class="main-heading mt-6">Willkommen auf meiner Informationsseite</h2>
+        <main>
+            <section id="was-ist-tsw" class="content-section active">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Was genau ist Topical Steroid Withdrawal?</h2>
+                    <p class="mb-6 text-slate-600 leading-relaxed">Dieser Abschnitt erklärt die Grundlagen von TSW. Es handelt sich nicht um eine Verschlimmerung der ursprünglichen Hautkrankheit, sondern um eine eigenständige, iatrogene (durch medizinische Behandlung verursachte) Erkrankung. Die Haut entwickelt eine Abhängigkeit vom extern zugeführten Kortison. Das interaktive Diagramm unten visualisiert diesen Kreislauf, von der ersten Anwendung bis zur Entstehung der Abhängigkeit.</p>
+                    
+                    <h3 class="text-2xl font-semibold text-slate-700 mb-4 mt-8">Der Kortison-Kreislauf</h3>
+                    <div id="cycle-container" class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
+                        <div class="cycle-step bg-slate-50 p-4 rounded-lg" data-step="1">
+                            <div class="text-3xl mb-2">①</div>
+                            <h4 class="font-semibold">Ursprung</h4>
+                            <p class="text-sm text-slate-500">Ekzem/Ausschlag</p>
+                        </div>
+                        <div class="cycle-step bg-slate-50 p-4 rounded-lg" data-step="2">
+                            <div class="text-3xl mb-2">②</div>
+                            <h4 class="font-semibold">Behandlung</h4>
+                            <p class="text-sm text-slate-500">Kortison-Creme</p>
+                        </div>
+                        <div class="cycle-step bg-slate-50 p-4 rounded-lg" data-step="3">
+                             <div class="text-3xl mb-2">③</div>
+                            <h4 class="font-semibold">Effekt</h4>
+                             <p class="text-sm text-slate-500">Schnelle Besserung</p>
+                        </div>
+                        <div class="cycle-step bg-slate-50 p-4 rounded-lg" data-step="4">
+                             <div class="text-3xl mb-2">④</div>
+                            <h4 class="font-semibold">Rebound</h4>
+                             <p class="text-sm text-slate-500">Ausschlag kehrt zurück</p>
+                        </div>
+                        <div class="cycle-step bg-slate-50 p-4 rounded-lg" data-step="5">
+                             <div class="text-3xl mb-2">⑤</div>
+                            <h4 class="font-semibold">Abhängigkeit</h4>
+                             <p class="text-sm text-slate-500">TSW entwickelt sich</p>
+                        </div>
+                    </div>
+                    <div id="cycle-explanation" class="mt-6 p-6 bg-teal-50 text-teal-800 rounded-lg min-h-[100px]">
+                        Klicken Sie auf einen Schritt, um eine Erklärung zu sehen.
+                    </div>
+                </div>
+            </section>
+            
+            <section id="symptome" class="content-section">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Symptome: Ekzem vs. TSW</h2>
+                    <p class="mb-6 text-slate-600 leading-relaxed">Eine der grössten Herausforderungen ist die Unterscheidung der Symptome. TSW-Symptome sind oft intensiver und unterscheiden sich qualitativ von einem typischen Ekzemschub. In diesem Abschnitt können Sie die häufigsten Symptome vergleichen, um die Unterschiede klarer zu erkennen. Dies kann Ihnen helfen, Ihre eigenen Beobachtungen besser einzuordnen.</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <h3 class="text-2xl font-semibold text-slate-700 mb-4">Symptom auswählen</h3>
+                            <div id="symptom-buttons" class="flex flex-col space-y-2">
+                                <button class="symptom-btn p-3 rounded-lg text-left bg-slate-100 hover:bg-slate-200 transition" data-symptom="juckreiz">Juckreiz</button>
+                                <button class="symptom-btn p-3 rounded-lg text-left bg-slate-100 hover:bg-slate-200 transition" data-symptom="roetung">Rötung</button>
+                                <button class="symptom-btn p-3 rounded-lg text-left bg-slate-100 hover:bg-slate-200 transition" data-symptom="hautgefuehl">Hautgefühl</button>
+                                <button class="symptom-btn p-3 rounded-lg text-left bg-slate-100 hover:bg-slate-200 transition" data-symptom="feuchtigkeit">Feuchtigkeit</button>
+                            </div>
+                        </div>
 
-        <section id="einfuehrung" class="content-section">
-            <h3 class="sub-heading">Was ist TSW? - Eine kurze Einführung</h1>
-            <p class="paragraph">
-                Hier kannst du erklären, was Topical Steroid Withdrawal (auch bekannt als Red Skin Syndrome) ist.
-                Du könntest erwähnen, dass es eine potenziell belastende Nebenwirkung ist, die nach dem Absetzen von topischen Kortikosteroiden auftreten kann,
-                die über einen längeren Zeitraum angewendet wurden.
-            </p>
-            <p class="paragraph">
-                Beschreibe kurz die typischen Symptome, ohne zu sehr ins Detail zu gehen (das kannst du in späteren Abschnitten tun).
-                Zum Beispiel: Hautrötungen, Brennen, Juckreiz, Schuppung, Ödeme, etc.
-            </p>
-        </section>
-
-        <section id="meine_geschichte" class="content-section">
-            <h3 class="sub-heading">Meine persönliche Geschichte</h3>
-            <p class="paragraph">
-                Das ist der Bereich für deine persönlichen Erfahrungen. Du könntest hier beginnen zu erzählen:
-                Wie hat alles angefangen? Welche Hautprobleme hattest du ursprünglich? Wann und warum hast du mit topischen Steroiden begonnen?
-            </p>
-            <p class="paragraph">
-                Wie lange hast du sie benutzt? Gab es Anzeichen, dass etwas nicht stimmt, bevor du sie abgesetzt hast?
-                Wie war der Moment der Entscheidung, die Steroide abzusetzen?
-            </p>
+                        <div class="md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-2">Typisches Ekzem</h3>
+                                <div id="ekzem-desc" class="p-4 bg-slate-50 rounded-lg min-h-[150px] text-slate-700">Wählen Sie ein Symptom links, um die Beschreibung anzuzeigen.</div>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-[#0c7a7e] mb-2">Topical Steroid Withdrawal (TSW)</h3>
+                                <div id="tsw-desc" class="p-4 bg-teal-50 rounded-lg min-h-[150px] text-teal-800">Wählen Sie ein Symptom links, um die Beschreibung anzuzeigen.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-        <section id="ressourcen" class="content-section">
-            <h3 class="sub-heading">Hilfreiche Ressourcen (Beispiel)</h3>
-            <p class="paragraph">
-                Hier könntest du später Links zu hilfreichen Webseiten, Studien, Support-Gruppen oder Blogs einfügen.
-                Zum Beispiel: ITSAN (International Topical Steroid Awareness Network).
-            </p>
-            <ul class="list-disc list-inside text-slate-700">
-                <li>Webseite XYZ - Informationen und Forschung</li>
-                <li>Forum für Betroffene</li>
-                <li>Blog von Person ABC</li>
-            </ul>
-        </section>
+            <section id="prozess" class="content-section">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Der Heilungsprozess im Zeitverlauf</h2>
+                    <p class="mb-6 text-slate-600 leading-relaxed">Dieser Abschnitt visualisiert den oft langen und nicht-linearen Heilungsprozess von TSW. Die interaktive Zeitachse zeigt, wie sich verschiedene Symptome über Monate entwickeln können. Der Prozess ist sehr individuell, aber diese Darstellung gibt einen allgemeinen Überblick. Sie soll Ihnen helfen, Ihre eigene Erfahrung einzuordnen – zum Beispiel, dass nach 9 Monaten eine deutliche Besserung normal ist, aber Symptome wie Trockenheit ("Elefantenhaut") noch andauern können, da die Hautbarriere sich noch regeneriert.</p>
+                    <div class="chart-container">
+                        <canvas id="tswTimelineChart"></canvas>
+                    </div>
+                    <div id="timeline-info" class="mt-6 p-4 bg-slate-50 rounded-lg text-center text-slate-700">Bewegen Sie die Maus über die Punkte im Diagramm, um Details zu den Phasen zu sehen.</div>
+                </div>
+            </section>
 
-    </main>
+            <section id="wissenschaft" class="content-section">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Aktuelle wissenschaftliche Lage</h2>
+                     <p class="mb-6 text-slate-600 leading-relaxed">Wie ist der aktuelle Stand der Wissenschaft? TSW ist ein anerkanntes, aber in der medizinischen Gemeinschaft immer noch kontrovers diskutiertes Phänomen. Dieser Abschnitt beleuchtet die Mechanismen, die vermutlich hinter TSW stecken, und den Stand der Anerkennung. Die Informationen basieren auf aktuellen Veröffentlichungen und klinischen Beobachtungen.</p>
 
-    <footer class="bg-slate-800 text-white text-center p-6 mt-10">
-        <p>&copy; <span id="year"></span> Dein Name - Alle Rechte vorbehalten.</p>
-        <p class="text-sm text-slate-400">Diese Seite dient nur zu Informationszwecken und ersetzt keine medizinische Beratung.</p>
-    </footer>
+                    <div id="accordion-container" class="space-y-3">
+                        <div class="accordion-item">
+                            <h3 class="accordion-header bg-slate-100 p-4 rounded-lg cursor-pointer font-semibold flex justify-between items-center">
+                                <span>Anerkennung & Kontroverse</span>
+                                <span class="accordion-icon">+</span>
+                            </h3>
+                            <div class="accordion-content hidden p-4 bg-slate-50 rounded-b-lg">
+                                <p>TSW ist in der internationalen Krankheitsklassifikation (ICD) nicht als eigenständige Diagnose aufgeführt. Viele Ärzte diagnostizieren die Symptome fälschlicherweise als schwere, unkontrollierbare Neurodermitis. Jedoch wächst die Anerkennung durch dermatologische Fachgesellschaften und Veröffentlichungen. Patientenberichte und Organisationen wie ITSAN (International Topical Steroid Awareness Network) haben maßgeblich zur Aufklärung beigetragen.</p>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header bg-slate-100 p-4 rounded-lg cursor-pointer font-semibold flex justify-between items-center">
+                                <span>Pathophysiologie: Was passiert im Körper?</span>
+                                 <span class="accordion-icon">+</span>
+                            </h3>
+                            <div class="accordion-content hidden p-4 bg-slate-50 rounded-b-lg">
+                                <p>Mehrere Mechanismen werden diskutiert:</p>
+                                <ul class="list-disc list-inside mt-2 space-y-1">
+                                    <li><strong>Tachyphylaxie:</strong> Die Haut gewöhnt sich an das Kortison, die Wirkung lässt nach. Dies führt oft zur Anwendung stärkerer Präparate, wie es bei Ihnen der Fall war.</li>
+                                    <li><strong>Rebound-Effekt:</strong> Kortison verengt die Blutgefäße. Nach dem Absetzen kommt es zu einer übermäßigen Erweiterung (Vasodilatation), vermittelt durch Stickstoffmonoxid (NO). Dies verursacht die intensive Rötung, das Brennen und Nässen.</li>
+                                    <li><strong>HPA-Achsen-Unterdrückung:</strong> Langfristige Anwendung kann die körpereigene Kortisolproduktion in der Nebenniere stören, was systemische Symptome (z.B. Müdigkeit, Frieren) erklären kann.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header bg-slate-100 p-4 rounded-lg cursor-pointer font-semibold flex justify-between items-center">
+                                <span>Diagnose und Differenzierung</span>
+                                <span class="accordion-icon">+</span>
+                            </h3>
+                            <div class="accordion-content hidden p-4 bg-slate-50 rounded-b-lg">
+                                <p>Die Diagnose erfolgt klinisch, basierend auf der Anamnese (langfristige Kortisonanwendung) und den typischen Symptomen nach dem Absetzen. Wichtige Hinweise sind:</p>
+                                <ul class="list-disc list-inside mt-2 space-y-1">
+                                    <li>Brennen statt nur Juckreiz.</li>
+                                    <li>Rötung, die über die ursprünglich betroffenen Areale hinausgeht ("Red Sleeves").</li>
+                                    <li>Versagen der Kortisontherapie trotz immer stärkerer Präparate.</li>
+                                    <li>Verbesserung nach dem vollständigen Absetzen (wie bei Ihnen nach 9 Monaten), auch wenn der Prozess lange dauert.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="hilfe" class="content-section">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Hilfe & Management</h2>
+                    <p class="mb-6 text-slate-600 leading-relaxed">Der Weg durch den TSW ist eine Herausforderung, aber es gibt Strategien, um die Symptome zu lindern und den Prozess erträglicher zu machen. Dieser Abschnitt bietet praktische Tipps. Es ist entscheidend, einen Arzt zu finden, der Ihre Situation ernst nimmt und Sie unterstützend begleitet, anstatt nur stärkere Medikamente zu verschreiben.</p>
+                    
+                     <div class="grid md:grid-cols-3 gap-6">
+                        <div class="p-6 bg-slate-50 rounded-lg">
+                            <h3 class="font-bold text-xl text-slate-700 mb-2">Symptomlinderung</h3>
+                            <ul class="list-disc list-inside space-y-2 text-slate-600">
+                                <li>Kühle Kompressen oder Bäder (ohne reizende Zusätze).</li>
+                                <li>Weiche, atmungsaktive Kleidung (Baumwolle, Leinen).</li>
+                                <li>Antihistaminika können bei Juckreiz helfen.</li>
+                                <li>Sanfte, minimalistische Hautpflege. Einige Betroffene bevorzugen phasenweise "Moisture Withdrawal" (Verzicht auf Cremes), besonders wenn die Haut nässt.</li>
+                                <li>Schmerzmanagement in Absprache mit einem Arzt.</li>
+                            </ul>
+                        </div>
+                        <div class="p-6 bg-slate-50 rounded-lg">
+                            <h3 class="font-bold text-xl text-slate-700 mb-2">Mentale Unterstützung</h3>
+                             <ul class="list-disc list-inside space-y-2 text-slate-600">
+                                <li>Austausch mit anderen Betroffenen (z.B. in Online-Foren, Selbsthilfegruppen).</li>
+                                <li>Achtsamkeitsübungen und Meditation zur Stressreduktion.</li>
+                                <li>Geduld mit sich und dem eigenen Körper haben. Heilung braucht Zeit.</li>
+                                <li>Professionelle psychologische Unterstützung in Betracht ziehen.</li>
+                            </ul>
+                        </div>
+                        <div class="p-6 bg-slate-50 rounded-lg">
+                            <h3 class="font-bold text-xl text-slate-700 mb-2">Wann zum Arzt?</h3>
+                             <ul class="list-disc list-inside space-y-2 text-slate-600">
+                                <li>Bei Anzeichen einer schweren bakteriellen oder viralen Infektion (gelbe Krusten, Fieber, Schüttelfrost).</li>
+                                <li>Bei unkontrollierbaren Schmerzen.</li>
+                                <li>Zur Abklärung, ob alternative, nicht-steroidale Medikamente (wie Immunsuppressiva) sinnvoll sein könnten, um die Übergangsphase zu managen.</li>
+                                <li>Um Unterstützung und eine offizielle Dokumentation des Zustands zu erhalten.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-12 text-sm text-slate-500">
+            <p><strong>Haftungsausschluss:</strong> Diese Seite dient ausschließlich zu Informationszwecken und ersetzt keine professionelle medizinische Beratung. Konsultieren Sie immer einen Arzt für Diagnose und Behandlung.</p>
+            <p class="mt-2">Erstellt mit aktuellen wissenschaftlichen Erkenntnissen und Daten aus Patienten-Communities.</p>
+        </footer>
+
+    </div>
 
     <script>
-        // JavaScript, um das aktuelle Jahr im Footer anzuzeigen
-        document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const contentSections = document.querySelectorAll('.content-section');
 
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    contentSections.forEach(section => {
+                        if (section.id === targetId) {
+                            section.classList.add('active');
+                        } else {
+                            section.classList.remove('active');
+                        }
+                    });
+                });
+            });
+            
+            const cycleSteps = document.querySelectorAll('.cycle-step');
+            const cycleExplanation = document.getElementById('cycle-explanation');
+            const cycleData = {
+                1: 'Alles beginnt oft mit einer behandelbaren Hauterkrankung wie Neurodermitis an einer kleinen Stelle.',
+                2: 'Ein topisches Kortikosteroid wird verschrieben. Es wirkt entzündungshemmend und unterdrückt die Symptome schnell.',
+                3: 'Die Haut scheint abzuheilen. Die Rötung und der Juckreiz verschwinden, was zu einer fortgesetzten Anwendung führt.',
+                4: 'Nach dem Absetzen oder zwischen den Anwendungen kehren die Symptome oft stärker zurück als zuvor (Rebound-Effekt).',
+                5: 'Die Haut wird abhängig. Immer mehr Creme oder stärkere Präparate sind nötig, um die Symptome zu kontrollieren. Das Absetzen führt zu schweren Entzugserscheinungen (TSW).'
+            };
+
+            cycleSteps.forEach(step => {
+                step.addEventListener('click', () => {
+                    const stepId = step.dataset.step;
+                    cycleSteps.forEach(s => s.classList.remove('active'));
+                    step.classList.add('active');
+                    cycleExplanation.textContent = cycleData[stepId];
+                });
+            });
+            cycleSteps[0].click();
+
+            const symptomButtons = document.querySelectorAll('.symptom-btn');
+            const ekzemDesc = document.getElementById('ekzem-desc');
+            const tswDesc = document.getElementById('tsw-desc');
+            const symptomData = {
+                juckreiz: {
+                    ekzem: 'Oft starker, aber lokalisierter Juckreiz, der zum Kratzen verleitet.',
+                    tsw: 'Intensives, tiefes Brennen, Nadelstiche oder "Knochenjucken". Fühlt sich oft wie ein Nervenschmerz an und ist unerbittlich.'
+                },
+                roetung: {
+                    ekzem: 'Rote, entzündete Flecken an typischen Ekzemstellen (z.B. Armbeugen, Kniekehlen).',
+                    tsw: 'Flächige, tiefrote bis violette Haut ("Red Skin Syndrome"), die oft scharf begrenzt ist (z.B. "Rote Ärmel") und über die ursprünglichen Stellen hinausgeht.'
+                },
+                hautgefuehl: {
+                    ekzem: 'Trockene, schuppige, verdickte Haut (Lichenifikation).',
+                    tsw: 'Extrem empfindliche, dünne Haut. Ödeme (Schwellungen), "Elefantenhaut" (tiefe Falten auf dünner Haut) und starke Schuppung.'
+                },
+                feuchtigkeit: {
+                    ekzem: 'Kann nässen, wenn aufgekratzt (bakterielle Infektion).',
+                    tsw: 'Häufiges, spontanes Nässen von seröser, oft metallisch riechender Flüssigkeit (Oozing), ohne vorheriges Kratzen.'
+                }
+            };
+            
+            symptomButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const symptomId = button.dataset.symptom;
+                    symptomButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    ekzemDesc.textContent = symptomData[symptomId].ekzem;
+                    tswDesc.textContent = symptomData[symptomId].tsw;
+                });
+            });
+            symptomButtons[0].click();
+
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                header.addEventListener('click', () => {
+                    const content = item.querySelector('.accordion-content');
+                    const icon = item.querySelector('.accordion-icon');
+                    const isVisible = !content.classList.contains('hidden');
+                    
+                    content.classList.toggle('hidden');
+                    icon.textContent = isVisible ? '+' : '-';
+                });
+            });
+            
+            const timelineInfo = document.getElementById('timeline-info');
+            const timelineData = [
+                { phase: "Monate 1-3: Akute Phase", desc: "Intensivste Phase nach dem Absetzen. Starkes Brennen, Nässen (Oozing), Schwellungen und großflächige Rötung sind typisch. Der Körper reagiert heftig auf den Entzug." },
+                { phase: "Monate 3-6: Übergangsphase", desc: "Das Nässen lässt oft nach. Die Haut wird extrem trocken und beginnt sich stark zu schuppen ('Shedding'). Zyklische Schübe sind häufig." },
+                { phase: "Monate 6-12: Stabilisierung", desc: "Die Schübe werden oft weniger intensiv. Die Hautbarriere beginnt sich langsam zu regenerieren. Faltenbildung ('Elefantenhaut') ist prominent. Hier befinden Sie sich vermutlich gerade." },
+                { phase: "Monate 12-24: Remodellierung", desc: "Die Haut wird widerstandsfähiger, die Farbe normalisiert sich. Die Trockenheit bessert sich langsam. Die Zyklen werden länger und die Schübe schwächer." },
+                { phase: "24+ Monate: Langzeitheilung", desc: "Die Haut hat sich weitgehend erholt. Die ursprüngliche Hauterkrankung (z.B. Neurodermitis) kann in milder Form bestehen bleiben, ist aber ohne Kortison kontrollierbar." }
+            ];
+
+            const ctx = document.getElementById('tswTimelineChart').getContext('2d');
+            const tswTimelineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1-3 M', '3-6 M', '6-12 M', '12-24 M', '24+ M'],
+                    datasets: [{
+                        label: 'Intensität Entzugssymptome (Brennen, Nässen)',
+                        data: [10, 8, 5, 3, 1],
+                        borderColor: '#ef4444',
+                        backgroundColor: '#fecaca',
+                        fill: true,
+                        tension: 0.4,
+                    }, {
+                        label: 'Intensität Hautbarriere-Störung (Trockenheit, Falten)',
+                        data: [5, 9, 10, 7, 4],
+                        borderColor: '#3b82f6',
+                        backgroundColor: '#dbeafe',
+                        fill: true,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value === 0) return 'Schwach';
+                                    if (value === 5) return 'Mittel';
+                                    if (value === 10) return 'Extrem';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                           enabled: false
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        if(chartElement.length > 0) {
+                            const index = chartElement[0].index;
+                            timelineInfo.innerHTML = `<strong>${timelineData[index].phase}:</strong> ${timelineData[index].desc}`;
+                        } else {
+                             timelineInfo.innerHTML = "Bewegen Sie die Maus über die Punkte im Diagramm, um Details zu den Phasen zu sehen.";
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
